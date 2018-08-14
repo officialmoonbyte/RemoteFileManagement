@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using IndieGoat.UniversalServer.Interfaces;
 
 namespace RemoteFileManagement
 {
     public class RemoteFileManagement : IServerPlugin
     {
+        TcpServer server;
         public string Name
         {
             get { return "RemoteFileManagement"; }
@@ -17,6 +19,8 @@ namespace RemoteFileManagement
         #region Vars
 
         int Port = 9984;
+        ClientSocketWorkload WorkLoad;
+        ClientContext Context;
 
         #endregion
 
@@ -37,6 +41,8 @@ namespace RemoteFileManagement
                 File.Create(FileDirectory).Close();
                 File.WriteAllText(FileDirectory, Port.ToString());
             }
+
+            server = new TcpServer(Port);
         }
 
         #endregion
@@ -53,8 +59,11 @@ namespace RemoteFileManagement
         {
             string Command = Args[1].ToUpper();
 
-            if (Command == "FILETOSERVER") { }
-            if (Command == "FILETOCLIENT") { }
+            WorkLoad = workload;
+            Context = context;
+
+            if (Command == "FILETOSERVER") { FileToServer(Args[2]); }
+            if (Command == "FILETOCLIENT") { FileToClient(Args[2]); }
             if (Command == "GETDIRECTORIES") { }
             if (Command == "GETFILES") { }
             if (Command == "DELETEFILE") { }
@@ -68,13 +77,29 @@ namespace RemoteFileManagement
 
         #region FileToServer
 
+        //RemoteFileManagement FILETOSERVER [FileDirectory]
+        private void FileToServer(string FileDirectory)
+        {
+            WorkLoad.SendMessage(Context, Port.ToString());
 
+            string FileByte = server.WaitForResult();
+            byte[] fileBytes = Encoding.ASCII.GetBytes(FileByte);
+
+            if (File.Exists(FileDirectory)) File.Delete(FileDirectory);
+            File.WriteAllBytes(FileDirectory, fileBytes);
+        }
 
         #endregion
 
         #region FileToClient
 
-
+        //RemoteFileManagement FILETOCLIENT [FileDirectory]
+        private void FileToClient(string FileDirectory)
+        {
+            byte[] FileByte = null;
+            if (File.Exists(FileDirectory)) { FileByte = File.ReadAllBytes(FileDirectory); }
+            WorkLoad.SendMessage(Context, Encoding.ASCII.GetString(FileByte));
+        }
 
         #endregion
 

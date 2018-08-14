@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.27703.2018
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RemoteFileManagement", "RemoteFileManagement\RemoteFileManagement.csproj", "{35C15F4D-663D-4114-9150-A91A0B6020C5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote File Management", "Remote File Management\Remote File Management.csproj", "{172B63BE-9865-42B6-A458-4157B5DD98A8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{35C15F4D-663D-4114-9150-A91A0B6020C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{35C15F4D-663D-4114-9150-A91A0B6020C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{35C15F4D-663D-4114-9150-A91A0B6020C5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{172B63BE-9865-42B6-A458-4157B5DD98A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{172B63BE-9865-42B6-A458-4157B5DD98A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{172B63BE-9865-42B6-A458-4157B5DD98A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{172B63BE-9865-42B6-A458-4157B5DD98A8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
