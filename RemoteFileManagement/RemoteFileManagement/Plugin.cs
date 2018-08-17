@@ -64,10 +64,9 @@ namespace RemoteFileManagement
 
             if (Command == "FILETOSERVER") { FileToServer(Args[2]); }
             if (Command == "FILETOCLIENT") { FileToClient(Args[2]); }
-            if (Command == "GETDIRECTORIES") { }
-            if (Command == "GETFILES") { }
+            if (Command == "GETDIRECTORIES") { GetDirectories(Args[2]); }
+            if (Command == "GETFILES") { GetFiles(Args[2]); }
             if (Command == "DELETEFILE") { }
-            if (Command == "EDITFILE") { }
             if (Command == "COPYFILE") { }
         }
 
@@ -99,6 +98,42 @@ namespace RemoteFileManagement
             byte[] FileByte = null;
             if (File.Exists(FileDirectory)) { FileByte = File.ReadAllBytes(FileDirectory); }
             WorkLoad.SendMessage(Context, Encoding.ASCII.GetString(FileByte));
+        }
+
+        #endregion
+
+        #region GetDirectories
+
+        private void GetDirectories(string Directory)
+        {
+            string returnString = null;
+
+            DirectoryInfo directoryInfo = new DirectoryInfo(Directory);
+
+            for(int i = 0; i < directoryInfo.GetDirectories().Length; i++)
+            {
+                if (returnString == null) { returnString = directoryInfo.GetDirectories()[i].Name; }
+                else { returnString += "%20" + directoryInfo.GetDirectories()[i].Name; }
+            }
+
+            WorkLoad.SendMessage(Context, returnString);
+        }
+
+        #endregion
+
+        #region GetFiles
+
+        private void GetFiles(string Directory)
+        {
+            string returnString = null;
+
+            DirectoryInfo directoryInfo = new DirectoryInfo(Directory);
+
+            for (int i = 0; i < directoryInfo.GetFiles().Length; i++)
+            {
+                if (returnString == null) { returnString = directoryInfo.GetFiles()[i].Name; }
+                else { returnString += "%20" + directoryInfo.GetFiles()[i].Name; }
+            }
         }
 
         #endregion
