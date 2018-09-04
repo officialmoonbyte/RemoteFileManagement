@@ -31,6 +31,8 @@ namespace RemoteFileManagement
             string PluginDirectory = ServerDirectory + @"\RemoteFileManagement";
             string FileDirectory = PluginDirectory + @"\Port.txt";
 
+            if (!Directory.Exists(PluginDirectory)) Directory.CreateDirectory(PluginDirectory);
+
             if (File.Exists(FileDirectory))
             {
                 string sPort = File.ReadAllText(FileDirectory);
@@ -59,6 +61,8 @@ namespace RemoteFileManagement
         {
             string Command = Args[1].ToUpper();
 
+            Console.WriteLine(Args[1].ToUpper());
+
             WorkLoad = workload;
             Context = context;
 
@@ -66,8 +70,8 @@ namespace RemoteFileManagement
             if (Command == "FILETOCLIENT") { FileToClient(Args[2]); }
             if (Command == "GETDIRECTORIES") { GetDirectories(Args[2]); }
             if (Command == "GETFILES") { GetFiles(Args[2]); }
-            if (Command == "DELETEFILE") { }
-            if (Command == "COPYFILE") { }
+            if (Command == "DELETEFILE") { DeleteFile(Args[2]); }
+            if (Command == "COPYFILE") { CopyFile(Args[3], Args[4]); }
         }
 
         #endregion
@@ -79,13 +83,22 @@ namespace RemoteFileManagement
         //RemoteFileManagement FILETOSERVER [FileDirectory]
         private void FileToServer(string FileDirectory)
         {
-            WorkLoad.SendMessage(Context, Port.ToString());
+            FileDirectory = FileDirectory.Replace("&20", " ");
 
-            string FileByte = server.WaitForResult();
-            byte[] fileBytes = Encoding.ASCII.GetBytes(FileByte);
+            try
+            {
+                WorkLoad.SendMessage(Context, Port.ToString());
 
-            if (File.Exists(FileDirectory)) File.Delete(FileDirectory);
-            File.WriteAllBytes(FileDirectory, fileBytes);
+                string FileByte = server.WaitForResult();
+                byte[] fileBytes = Encoding.ASCII.GetBytes(FileByte);
+
+                if (File.Exists(FileDirectory)) File.Delete(FileDirectory);
+                File.WriteAllBytes(FileDirectory, fileBytes);
+            }
+            catch (Exception e)
+            {
+                WorkLoad.SendMessage(Context, "error " + e.Message);
+            }
         }
 
         #endregion
@@ -95,9 +108,18 @@ namespace RemoteFileManagement
         //RemoteFileManagement FILETOCLIENT [FileDirectory]
         private void FileToClient(string FileDirectory)
         {
-            byte[] FileByte = null;
-            if (File.Exists(FileDirectory)) { FileByte = File.ReadAllBytes(FileDirectory); }
-            WorkLoad.SendMessage(Context, Encoding.ASCII.GetString(FileByte));
+            FileDirectory = FileDirectory.Replace("&20", " ");
+
+            try
+            {
+                byte[] FileByte = null;
+                if (File.Exists(FileDirectory)) { FileByte = File.ReadAllBytes(FileDirectory); }
+                WorkLoad.SendMessage(Context, Encoding.ASCII.GetString(FileByte));
+            }
+            catch (Exception e)
+            {
+                WorkLoad.SendMessage(Context, "error " + e.Message);
+            }
         }
 
         #endregion
@@ -106,17 +128,27 @@ namespace RemoteFileManagement
 
         private void GetDirectories(string Directory)
         {
-            string returnString = null;
+            Directory = Directory.Replace("&20", " ");
 
-            DirectoryInfo directoryInfo = new DirectoryInfo(Directory);
-
-            for(int i = 0; i < directoryInfo.GetDirectories().Length; i++)
+            try
             {
-                if (returnString == null) { returnString = directoryInfo.GetDirectories()[i].Name; }
-                else { returnString += "%20" + directoryInfo.GetDirectories()[i].Name; }
-            }
+                string returnString = "";
 
-            WorkLoad.SendMessage(Context, returnString);
+                DirectoryInfo directoryInfo = new DirectoryInfo(Directory);
+
+                foreach(DirectoryInfo dir in directoryInfo.GetDirectories())
+                {
+                    if (returnString.Length == 0) { returnString = dir.Name; }
+                    else { returnString += "%20" + dir.Name; }
+                }
+
+                WorkLoad.SendMessage(Context, returnString);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("[EROR] Error in GetDirectories : " + e.Message);
+                WorkLoad.SendMessage(Context, "error " + e.Message);
+            }
         }
 
         #endregion
@@ -125,14 +157,62 @@ namespace RemoteFileManagement
 
         private void GetFiles(string Directory)
         {
-            string returnString = null;
-
-            DirectoryInfo directoryInfo = new DirectoryInfo(Directory);
-
-            for (int i = 0; i < directoryInfo.GetFiles().Length; i++)
+            Directory = Directory.Replace("&20", " ");
+            try
             {
-                if (returnString == null) { returnString = directoryInfo.GetFiles()[i].Name; }
-                else { returnString += "%20" + directoryInfo.GetFiles()[i].Name; }
+                string returnString = "";
+
+                DirectoryInfo directoryInfo = new DirectoryInfo(Directory);
+
+                foreach(FileInfo file in directoryInfo.GetFiles())
+                {
+                    if (returnString.Length == 0) { returnString = file.Name; }
+                    else { returnString += "%20" + file.Name; }
+                }
+
+                WorkLoad.SendMessage(Context, returnString);
+            }
+            catch (Exception e)
+            {
+                WorkLoad.SendMessage(Context, "error " + e.Message);
+            }
+        }
+
+        #endregion
+
+        #region DeletFile
+
+        private void DeleteFile(string file)
+        {
+            file = file.Replace("&20", " ");
+            try
+            {
+                File.Delete(file);
+                WorkLoad.SendMessage(Context, "TRUE");
+            }
+            catch (Exception e)
+            {
+                WorkLoad.SendMessage(Context, "error " + e.Message);
+            }
+        }
+
+        #endregion
+
+        #region CopyFile
+
+        private void CopyFile(string FilePath, string CopyFilePath)
+        {
+            FilePath = FilePath.Replace("&20", " ");
+            CopyFilePath = CopyFilePath.Replace("&20", " ");
+
+            try
+            {
+                File.Copy(FilePath, CopyFilePath);
+                WorkLoad.SendMessage(Context, "TRUE");
+            }
+            catch (Exception e)
+            {
+                WorkLoad.SendMessage(Context, "error " + e.Message);
             }
         }
 
