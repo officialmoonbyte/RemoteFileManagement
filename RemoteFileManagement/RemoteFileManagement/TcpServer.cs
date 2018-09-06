@@ -10,110 +10,47 @@ namespace RemoteFileManagement
 {
     public class TcpServer
     {
-        TcpListener ServerSocket;
-        bool HasReceived = false;
-        string Received;
+        TcpListener tcpListener;
 
         public TcpServer(int Port)
         {
-            ServerSocket = new TcpListener(new IPEndPoint(IPAddress.Any, Port));
-            ServerSocket.Start();
-
-            ServerSocket.BeginAcceptTcpClient(OnClientAccept, ServerSocket);
+            tcpListener = new TcpListener(IPAddress.Any, Port);
+            tcpListener.Start();
         }
 
-        public string WaitForResult()
+        public ClientSocket AcceptClient()
         {
-            while(HasReceived == false)
-            {
+            TcpClient client = tcpListener.AcceptTcpClient();
+            ClientSocket cs = new ClientSocket(client);
+            return cs;
+        }
 
+        public class ClientSocket
+        {
+            TcpClient Client;
+
+            public ClientSocket(TcpClient client)
+            {
+                Client = client;
+            }
+            public void SendFile(string FilePath)
+            {
+                Client.Client.SendFile(FilePath);
             }
 
-            return Received;
-        }
-
-        public class ClientContext
-        {
-            public TcpClient Client;
-            public Stream Stream;
-            public bool ReceivedPublicKey = false;
-            public bool ReceivedPrivateKey = false;
-            public bool SentPublicKey = false;
-            public bool SentPrivateKey = false;
-            public byte[] buffer = new byte[65525];
-            public StringBuilder sb = new StringBuilder();
-        }
-
-        private void OnClientAccept(IAsyncResult ar)
-        {
-
-            ClientContext context;
-
-            if (ServerSocket == null) return;
-            try
+            public void ReceiveFile(string FilePath)
             {
-                context = new ClientContext();
-                context.Client = ServerSocket.EndAcceptTcpClient(ar);
-                context.Stream = context.Client.GetStream();
-                InitializeClientConnection(context);
-            }
-            finally
-            {
-                ServerSocket.BeginAcceptTcpClient(OnClientAccept, ServerSocket);
-            }
-        }
-
-        private void InitializeClientConnection(ClientContext context)
-        {
-            try
-            {
-                context.Client.Client.BeginReceive(context.buffer, 0, context.buffer.Length, 0, new AsyncCallback(readCallback), context);
-            }
-            catch { }
-        }
-
-        private void readCallback(IAsyncResult ar)
-        {
-            ClientContext context = (ClientContext)ar.AsyncState;
-            string req = ReadClient(context, ar);
-            if (req != null)
-            {
-                try
+                if (File.Exists(FilePath)) File.Delete(FilePath);
+                using (var stream = Client.GetStream())
+                using (var output = File.Create(FilePath))
                 {
-                    Received = req;
-                    HasReceived = true;
+                    var buffer = new byte[1024];
+                    int bytesRead;
+                    while((bytesRead = stream.Read(buffer, 0, buffer.Length)) > 0)
+                    {
+                        output.Write(buffer, 0, bytesRead);
+                    }
                 }
-                catch { }
-            }
-        }
-
-        private string ReadClient(ClientContext context, IAsyncResult ar)
-        {
-            string Content = String.Empty;
-
-            context.Stream.Flush();
-            context.sb = new StringBuilder();
-
-            try
-            {
-                if (context == null) return null;
-                Socket handler = context.Client.Client;
-
-                int read = handler.EndReceive(ar);
-
-                // Data was read from the client socket.
-                if (read > 0)
-                {
-                    string b = context.sb.Append(Encoding.UTF8.GetString(context.buffer, 0, read)).ToString();
-                    string[] Result = b.Split(new string[] { "<EOF>" }, StringSplitOptions.RemoveEmptyEntries);
-                    return Result[0];
-                }
-
-                return null;
-            }
-            catch (Exception e)
-            {
-                return null;
             }
         }
     }

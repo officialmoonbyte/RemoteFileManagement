@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using IndieGoat.UniversalServer.Interfaces;
+using static RemoteFileManagement.TcpServer;
 
 namespace RemoteFileManagement
 {
@@ -89,11 +90,8 @@ namespace RemoteFileManagement
             {
                 WorkLoad.SendMessage(Context, Port.ToString());
 
-                string FileByte = server.WaitForResult();
-                byte[] fileBytes = Encoding.ASCII.GetBytes(FileByte);
-
-                if (File.Exists(FileDirectory)) File.Delete(FileDirectory);
-                File.WriteAllBytes(FileDirectory, fileBytes);
+                ClientSocket clientSocket = server.AcceptClient();
+                clientSocket.ReceiveFile(FileDirectory);
             }
             catch (Exception e)
             {
@@ -112,9 +110,9 @@ namespace RemoteFileManagement
 
             try
             {
-                byte[] FileByte = null;
-                if (File.Exists(FileDirectory)) { FileByte = File.ReadAllBytes(FileDirectory); }
-                WorkLoad.SendMessage(Context, Encoding.ASCII.GetString(FileByte));
+                WorkLoad.SendMessage(Context, Port.ToString());
+                ClientSocket clientSocket = server.AcceptClient();
+                clientSocket.SendFile(FileDirectory);
             }
             catch (Exception e)
             {

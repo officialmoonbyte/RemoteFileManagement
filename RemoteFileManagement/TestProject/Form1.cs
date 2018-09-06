@@ -15,12 +15,12 @@ namespace TestProject
 
         private void button1_Click(object sender, EventArgs e)
         {
-            remoteFile.FileToServer(@"C:\Users\Alexander Ritter\Desktop\Dir\Client\Servert.txt", @"C:\Users\Alexander Ritter\Desktop\Dir\Server\Testt.txt");
+            remoteFile.FileToServer(@"C:\Users\Alexander Ritter\Desktop\TestServer\Client\SendToServer.txt", @"C:\Users\Alexander Ritter\Desktop\TestServer\Server\ReceivedFromClient.txt");
         }
 
         private void button2_Click(object sender, EventArgs e)
         {
-            remoteFile.FileToClient(@"C:\Users\Alexander Ritter\Desktop\Dir\Server\Test.txt", @"C:\Users\Alexander Ritter\Desktop\Dir\Client\test.txt");
+            remoteFile.FileToClient(@"C:\Users\Alexander Ritter\Desktop\TestServer\Server\SendToClient.txt", @"C:\Users\Alexander Ritter\Desktop\TestServer\Client\ReceivedFromServer.txt");
         }
 
         private void button3_Click(object sender, EventArgs e)
