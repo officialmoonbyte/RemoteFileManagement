@@ -48,6 +48,12 @@
     <Compile Include="TcpClient.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Spaceshuttle FileTransfer\Spaceshuttle FileTransfer.csproj">
+      <Project>{41809fd7-ccb5-4c80-8b13-07f66d3af501}</Project>
+      <Name>Spaceshuttle FileTransfer</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

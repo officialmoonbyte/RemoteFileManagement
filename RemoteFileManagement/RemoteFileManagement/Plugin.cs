@@ -90,8 +90,7 @@ namespace RemoteFileManagement
             {
                 WorkLoad.SendMessage(Context, Port.ToString());
 
-                ClientSocket clientSocket = server.AcceptClient();
-                clientSocket.ReceiveFile(FileDirectory);
+                server.ReceiveFile(FileDirectory);
             }
             catch (Exception e)
             {
@@ -111,8 +110,8 @@ namespace RemoteFileManagement
             try
             {
                 WorkLoad.SendMessage(Context, Port.ToString());
-                ClientSocket clientSocket = server.AcceptClient();
-                clientSocket.SendFile(FileDirectory);
+
+                server.ReceiveFile(FileDirectory);
             }
             catch (Exception e)
             {

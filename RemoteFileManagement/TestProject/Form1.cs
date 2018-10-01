@@ -15,7 +15,7 @@ namespace TestProject
 
         private void button1_Click(object sender, EventArgs e)
         {
-            remoteFile.FileToServer(@"C:\Users\Alexander Ritter\Desktop\TestServer\Client\SendToServer.txt", @"C:\Users\Alexander Ritter\Desktop\TestServer\Server\ReceivedFromClient.txt");
+            remoteFile.FileToServer(@"C:\Trasfer\Client\test.zip", @"C:\Trasfer\Server");
         }
 
         private void button2_Click(object sender, EventArgs e)

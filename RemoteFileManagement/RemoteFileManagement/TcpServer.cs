@@ -1,57 +1,65 @@
-﻿
+﻿using MoonByte.TCP.IO.Spaceshuttle;
 using System;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
 
 namespace RemoteFileManagement
 {
     public class TcpServer
     {
-        TcpListener tcpListener;
+        #region Vars
+
+        TcpListener listener;
+
+        #endregion
+
+        #region Startup
 
         public TcpServer(int Port)
         {
-            tcpListener = new TcpListener(IPAddress.Any, Port);
-            tcpListener.Start();
+            listener = new TcpListener(IPAddress.Any, Port);
+            listener.Start(0);
         }
 
-        public ClientSocket AcceptClient()
+        #endregion
+
+        #region ReceiveFile
+
+        public void ReceiveFile(string FileDirectory)
         {
-            TcpClient client = tcpListener.AcceptTcpClient();
-            ClientSocket cs = new ClientSocket(client);
-            return cs;
-        }
-
-        public class ClientSocket
-        {
-            TcpClient Client;
-
-            public ClientSocket(TcpClient client)
+            Thread thread = new Thread(new ThreadStart(() =>
             {
-                Client = client;
-            }
-            public void SendFile(string FilePath)
-            {
-                Client.Client.SendFile(FilePath);
-            }
+                TcpClient client = listener.AcceptTcpClient();
 
-            public void ReceiveFile(string FilePath)
-            {
-                if (File.Exists(FilePath)) File.Delete(FilePath);
-                using (var stream = Client.GetStream())
-                using (var output = File.Create(FilePath))
+                NetworkStream stream = client.GetStream();
+
+                BinaryFormatter formatter = new BinaryFormatter();
+                FileTransfer transfer = (FileTransfer)formatter.Deserialize(stream);
+
+                string realFD = FileDirectory + "\\" + transfer.FileName;
+                File.WriteAllBytes(realFD, Convert.FromBase64String(transfer.FileContent));
+
+                if(Encoding.CalculateMD5(realFD) != transfer.CheckSum)
                 {
-                    var buffer = new byte[1024];
-                    int bytesRead;
-                    while((bytesRead = stream.Read(buffer, 0, buffer.Length)) > 0)
-                    {
-                        output.Write(buffer, 0, bytesRead);
-                    }
+                    Console.WriteLine("[WARNING] Coppied file with checksum not equal!");
                 }
-            }
+            })); thread.Start();
         }
+
+        #endregion
+
+        #region Send File
+
+        public void SendFile(string FileDirectory)
+        {
+            Thread thread = new Thread(new ThreadStart(() =>
+            {
+            })); thread.Start();
+        }
+
+        #endregion
     }
 }

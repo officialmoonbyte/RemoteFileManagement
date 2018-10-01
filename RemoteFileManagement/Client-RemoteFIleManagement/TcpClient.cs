@@ -1,11 +1,29 @@
-﻿using System.IO;
+﻿using MoonByte.TCP.IO.Spaceshuttle;
+using System;
+using System.IO;
 using System.Net.Sockets;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Threading;
 
 namespace MoonByte.Net.Plugins
 {
     public class Client
     {
+
+        #region Vars
+
         TcpClient client;
+
+        #endregion
+
+        #region Events
+
+        public EventHandler<EventArgs> SentFileFinished;
+        public EventHandler<EventArgs> ReceivedFileFinished;
+
+        #endregion
+
+        #region Startup
 
         public Client(string IP, int Port)
         {
@@ -13,24 +31,46 @@ namespace MoonByte.Net.Plugins
             client.Connect(IP, Port);
         }
 
-        public void SendFile(string FilePath)
+        #endregion
+
+        #region SendFile
+
+        public void SendFile(string FileDirectory)
         {
-            client.Client.SendFile(FilePath);
+            Thread thread = new Thread(new ThreadStart(() =>
+            {
+                FileTransfer transferRequest = new FileTransfer();
+
+                try
+                {
+                    transferRequest.FileName = new FileInfo(FileDirectory).Name;
+                    transferRequest.FileSize = new FileInfo(FileDirectory).Length.ToString();
+                    transferRequest.CheckSum = Encoding.CalculateMD5(FileDirectory);
+                    string Seed = "Trequest";
+                    transferRequest.Seed = Seed;
+                    transferRequest.FileContent = Convert.ToBase64String(File.ReadAllBytes(FileDirectory));
+
+                    NetworkStream stream = client.GetStream();
+                    BinaryFormatter formatter = new BinaryFormatter();
+                    formatter.Serialize(stream, transferRequest);
+                }
+                catch { Console.WriteLine("Failed to send file!"); }
+            })); thread.Start();
         }
 
-        public void ReceiveFile(string FilePath)
+        #endregion
+
+        #region ReceiveFile
+
+        public void ReceiveFile(string FileDirectory)
         {
-            if (File.Exists(FilePath)) File.Delete(FilePath);
-            using (var stream = client.GetStream())
-            using (var output = File.Create(FilePath))
+            Thread thread = new Thread(new ThreadStart(() =>
             {
-                var buffer = new byte[1024];
-                int bytesRead;
-                while ((bytesRead = stream.Read(buffer, 0, buffer.Length)) > 0)
-                {
-                    output.Write(buffer, 0, bytesRead);
-                }
-            }
+
+            })); thread.Start();
         }
+
+        #endregion
+
     }
 }
