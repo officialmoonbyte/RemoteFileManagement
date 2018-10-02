@@ -66,7 +66,18 @@ namespace MoonByte.Net.Plugins
         {
             Thread thread = new Thread(new ThreadStart(() =>
             {
+                NetworkStream stream = client.GetStream();
 
+                BinaryFormatter formatter = new BinaryFormatter();
+                FileTransfer transfer = (FileTransfer)formatter.Deserialize(stream);
+
+                string realFD = FileDirectory + "\\" + transfer.FileName;
+                File.WriteAllBytes(realFD, Convert.FromBase64String(transfer.FileContent));
+
+                if (Encoding.CalculateMD5(realFD) != transfer.CheckSum)
+                {
+                    Console.WriteLine("[WARNING] Coppied file with checksum not equal!");
+                }
             })); thread.Start();
         }
 
